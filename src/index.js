@@ -1,13 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
+import Mixnodes from './Mixnodes';
+import Exec from './Nyx_exec';
+import Mixnet from './Mixnet_traffic';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    {/* <Mixnodes /> */}
+    <Exec />
+    {/* <Mixnet /> */}
   </React.StrictMode>
 );
 
