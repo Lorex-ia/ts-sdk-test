@@ -2,24 +2,32 @@ import "./App.css";
 import { contracts } from "@nymproject/contract-clients";
 import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 import { DirectSecp256k1HdWallet } from "@cosmjs/proto-signing";
+import { settings } from "./settings.ts";
+
 
 export default function Exec() {
   async function ExecuteOnNyx() {
     // Generate a signer from a mnemonic
-    const signer = await DirectSecp256k1HdWallet.fromMnemonic(
-      "charge solid adjust talk rose there because bridge screen next swear rose uphold hammer grant agree slam damp lazy position coconut cabbage endless welcome",
-      { prefix: "n" }
-    );
+    // const signer = await DirectSecp256k1HdWallet.fromMnemonic(
+    //   "charge solid adjust talk rose there because bridge screen next swear rose uphold hammer grant agree slam damp lazy position coconut cabbage endless welcome",
+    //   { prefix: "n" }
+    // );
+
+    const signer = await DirectSecp256k1HdWallet.fromMnemonic(settings.mnemonic, {
+      prefix: "n",
+    });
     const accounts = await signer.getAccounts();
     console.log("accounts:", accounts);
+
+
+    
     // Make a signing client for the Nym Mixnet contract on mainnet
     // If RPC error use this URL instead: "wss://rpc.nymtech.net:443"
     const cosmWasmSigningClient = await SigningCosmWasmClient.connectWithSigner(
-      "wss://rpc.nymtech.net:443",
+      // "wss://rpc.nymtech.net:443",
+       settings.url,
       signer,
-      {
-        gasPrice: { amount: "0", denom: "unym" },
-      }
+      {  gasPrice: {amount: 100000, denom: 'unym'} }
     );
 
     const client = new contracts.Mixnet.MixnetClient(
@@ -33,7 +41,7 @@ export default function Exec() {
       { mixId: 100 },
       "auto",
       undefined,
-      [{ amount: `26664`, denom: "unym" }]
+      [{ amount: `${1_000_000}`, denom: 'unym' }]
     );
 
     console.log(result);
