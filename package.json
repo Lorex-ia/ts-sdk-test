@@ -6,6 +6,7 @@
     "@cosmjs/cosmwasm-stargate": "^0.31.1",
     "@cosmjs/proto-signing": "^0.31.1",
     "@nymproject/contract-clients": "^1.2.0-rc.1",
+    "@nymproject/mix-fetch": "^1.2.0-rc.1",
     "@nymproject/sdk": "^1.2.0-rc.1",
     "@nymproject/sdk-full-fat": "^1.2.0-rc.1",
     "@testing-library/jest-dom": "^5.17.0",
