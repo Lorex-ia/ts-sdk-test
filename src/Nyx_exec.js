@@ -9,9 +9,13 @@ export default function Exec() {
   let signer = null;
   let address = null;
   let signerMixnetClient = null;
+  let cosmWasmSigningClient = null;
   let mixId = null;
-  let amount = null;
+  let amountToDelegate = null;
   let balance = null;
+  let nodeAddress = null;
+  let amountToSend = null;
+  let delegations = null;
 
   async function ExecuteOnNyx() {
     // Signer
@@ -29,10 +33,14 @@ export default function Exec() {
     // Make a signing client for the Nym Mixnet contract on mainnet
     // If RPC error use this URL instead: "wss://rpc.nymtech.net:443"
     try {
-      const cosmWasmSigningClient =
-        await SigningCosmWasmClient.connectWithSigner(settings.url, signer, {
+      const cosmWasmClient = await SigningCosmWasmClient.connectWithSigner(
+        settings.url,
+        signer,
+        {
           gasPrice: GasPrice.fromString("0.025unym"),
-        });
+        }
+      );
+      cosmWasmSigningClient = cosmWasmClient;
       try {
         balance = await cosmWasmSigningClient?.getBalance(address, "unym");
         console.log("balance", balance);
@@ -51,32 +59,64 @@ export default function Exec() {
     }
   }
 
-  // Delegate to a Mixnode
-  // const doDelegation = async () => {
-  //   try {
-  //     const result = await signerMixnetClient.delegateToMixnode(
-  //       { mixId },
-  //       "auto",
-  //       undefined,
-  //       [{ amount, denom: "unym" }]
-  //     );
+  // get delegations
+  const getDelegations = async () => {
+    if (!signerMixnetClient) {
+      return;
+    }
+    const delegationsObject = await signerMixnetClient.getDelegatorDelegations({
+      delegator: settings.address,
+    });
+    delegations = delegationsObject;
+  };
 
-  //     console.log(result);
-  //   } catch (error) {
-  //     console.error("Problem delegating: ", error);
-  //   }
-  // };
+  // make delegation
   const doDelegation = async () => {
     if (!signerMixnetClient) {
       return;
     }
-    console.log("mixId", mixId, "amount", amount);
     try {
       const res = await signerMixnetClient.delegateToMixnode(
         { mixId },
         "auto",
         undefined,
-        [{ amount: `${amount}`, denom: "unym" }]
+        [{ amount: `${amountToDelegate}`, denom: "unym" }]
+      );
+      console.log("delegations: ", res);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // Undelegate all
+  const doUndelegateAll = async () => {
+    if (!signerMixnetClient) {
+      return;
+    }
+    console.log("delegations", delegations);
+    try {
+      for (const delegation of delegations.delegations) {
+        await signerMixnetClient.undelegateFromMixnode(
+          { mixId: delegation.mix_id },
+          "auto"
+        );
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // Sending tokens
+  const doSendTokens = async () => {
+    const memo = "test sending tokens";
+
+    try {
+      const res = await cosmWasmSigningClient.sendTokens(
+        settings.address,
+        nodeAddress,
+        [{ amount: amountToSend, denom: "unym" }],
+        "auto",
+        memo
       );
       console.log("res", res);
     } catch (error) {
@@ -85,10 +125,27 @@ export default function Exec() {
   };
 
   ExecuteOnNyx();
+  setTimeout(() => getDelegations(), 1000);
 
   return (
     <div>
       <p>Exec</p>
+      <div>
+        <p>Send Tokens</p>
+        <input
+          type="string"
+          placeholder="Node Address"
+          onChange={(e) => (nodeAddress = e.target.value)}
+        />
+        <input
+          type="number"
+          placeholder="Amount"
+          onChange={(e) => (amountToSend = e.target.value)}
+        />
+        <div>
+          <button onClick={() => doSendTokens()}>Send Tokens</button>
+        </div>
+      </div>
       <div>
         <p>Delegate</p>
         <input
@@ -99,10 +156,13 @@ export default function Exec() {
         <input
           type="number"
           placeholder="Amount"
-          onChange={(e) => (amount = e.target.value)}
+          onChange={(e) => (amountToDelegate = e.target.value)}
         />
         <div>
           <button onClick={() => doDelegation()}>Delegate</button>
+        </div>
+        <div>
+          <button onClick={() => doUndelegateAll()}>Undelegate All</button>
         </div>
       </div>
     </div>
