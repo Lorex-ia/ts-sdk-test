@@ -5,16 +5,16 @@ import Mixnodes from './Mixnodes';
 import Exec from './Nyx_exec';
 import Mixnet from './Mixnet_traffic';
 import MixnetTwo from './Mixnet_traffic2';
-import Mixfetch from './Mixfetch';
+// import Mixnet from './Mixnet_traffic';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     {/* <Mixnodes /> */}
-    {/* <Exec /> */}
+    <Exec />
     {/* <Mixnet /> */}
-    <MixnetTwo />
+    {/* <MixnetTwo /> */}
   </React.StrictMode>
 );
 
