@@ -19,42 +19,35 @@ function appendImageOutput(url: string) {
 async function main() {
   appendOutput('Tester is starting up...');
 
-  const worker = await createMixFetch();
-  (window as any).mixFetch = worker;
-
-  if (!worker) {
-    console.error('Oh no! Could not create mixFetch');
-    appendOutput('Oh no! Could not create mixFetch');
-  }
-
-  // only really useful if you want to adjust some settings like traffic rate
-  // (if not needed you can just pass a null)
+  // const addr =
+  //   'EVdJ66jqpoVzmktVecy5UJxsTCEWo5gMn5zDZR7Hm8jy.GXNpoX7RcYcxKvBkV3dSHqC78WaPuWieweRPWzYqNhh5@GAjhJcrd6f1edaqUkfWCff6zdHoqo756qYrc2TfPuCXJ';
+  const addr = undefined;
 
   appendOutput('About to set up mixFetch...');
-
-  const addr =
-    'BUFKbUncPWL4WkQPHc7JRusdXwXKi5omS8Fz5Rr34JoZ.8iM69a1pjcMwLEdQCkmq5jdGi8tsSpbjQqk6YWQAX6Ae@3ojQD6V7skM1bSXJX7fVQvscjmcgptzdixQEaAha2ixh';
-
-  appendOutput('Instantiating Mix Fetch...');
-  // await setupMixFetch(config, {storagePassphrase: "foomp"})
-
-  await worker.setupMixFetch({
+  const { mixFetch } = await createMixFetch({
     preferredNetworkRequester: addr,
-    clientId: 'my-new-client-15',
+    clientId: 'my-new-client-16',
     clientOverride: {
       coverTraffic: { disableLoopCoverTrafficStream: true },
       traffic: { disableMainPoissonPacketDistribution: true },
     },
     mixFetchOverride: { requestTimeoutMs: 60000 },
+    responseBodyConfigMap: {},
   });
+  (window as any).mixFetch = mixFetch;
 
-  appendOutput('Ready!');
+  if (!(window as any).mixFetch) {
+    console.error('Oh no! Could not create mixFetch');
+    appendOutput('Oh no! Could not create mixFetch');
+  } else {
+    appendOutput('Ready!');
+  }
 
   let url = 'https://nymtech.net/.wellknown/network-requester/standard-allowed-list.txt';
   appendOutput(`Using mixFetch to get ${url}...`);
   const args = { mode: 'unsafe-ignore-cors' };
 
-  let resp = await worker.mixFetch(url, args);
+  let resp = await mixFetch(url, args);
   console.log({ resp });
   const text = await resp.text();
 
@@ -63,10 +56,10 @@ async function main() {
 
   // get an image
   url = 'https://nymtech.net/images/token/pie-classic-2.svg';
-  resp = await worker.mixFetch(url, args);
+  resp = await mixFetch(url, args);
   console.log({ resp });
   const buffer = await resp.arrayBuffer();
-  const type = resp.headers.get('Content-Type');
+  const type = resp.headers.get('Content-Type') || 'image/svg';
   const blobUrl = URL.createObjectURL(new Blob([buffer], { type }));
   appendOutput(JSON.stringify({ bufferBytes: buffer.byteLength, blobUrl }, null, 2));
   appendImageOutput(blobUrl);
